@@ -1,20 +1,12 @@
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { StyleSheet } from 'react-native';
+import ComingSoon from '@/components/ComingSoon';
 
-export default function PortfolioScreen() {
+export default function PortfolioPage() {
     return (
-        <ThemedView style={styles.container}>
-            <ThemedText type="title">Portfolio</ThemedText>
-        </ThemedView>
+        <ComingSoon
+            iconName="LayoutDashboard"
+            title="My Portfolio"
+            tagline="Manage your ventures"
+            description="A centralized hub to manage and oversee all your active startup projects and investments."
+        />
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-});

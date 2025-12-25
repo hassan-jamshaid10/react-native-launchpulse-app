@@ -1,20 +1,12 @@
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { StyleSheet } from 'react-native';
+import ComingSoon from '@/components/ComingSoon';
 
-export default function AnalyticsScreen() {
+export default function AnalyticsPage() {
     return (
-        <ThemedView style={styles.container}>
-            <ThemedText type="title">Analytics</ThemedText>
-        </ThemedView>
+        <ComingSoon
+            iconName="BarChart3"
+            title="Analytics Dashboard"
+            tagline="Deep dive into your metrics"
+            description="Visualise your startup's performance with AI-driven insights and real-time data tracking."
+        />
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-});

@@ -1,20 +1,12 @@
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { StyleSheet } from 'react-native';
+import ComingSoon from '@/components/ComingSoon';
 
-export default function TeamScreen() {
+export default function TeamPage() {
     return (
-        <ThemedView style={styles.container}>
-            <ThemedText type="title">Team</ThemedText>
-        </ThemedView>
+        <ComingSoon
+            iconName="Users"
+            title="Team Management"
+            tagline="Collaborate with your team"
+            description="Invite team members, assign roles, and collaborate on your startup evaluations."
+        />
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-});
