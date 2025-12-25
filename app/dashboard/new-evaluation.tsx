@@ -1,20 +1,12 @@
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { StyleSheet } from 'react-native';
+import ComingSoon from '@/components/ComingSoon';
 
-export default function NewEvaluationScreen() {
+export default function NewEvaluationPage() {
     return (
-        <ThemedView style={styles.container}>
-            <ThemedText type="title">New Evaluation</ThemedText>
-        </ThemedView>
+        <ComingSoon
+            iconName="Lightbulb"
+            title="New Evaluation"
+            tagline="Start evaluating a new business idea"
+            description="Launch a comprehensive analysis of your next big idea with our AI-powered evaluation tools."
+        />
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-});

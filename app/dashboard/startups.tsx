@@ -1,20 +1,12 @@
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { StyleSheet } from 'react-native';
+import ComingSoon from '@/components/ComingSoon';
 
-export default function StartupsScreen() {
+export default function StartupsPage() {
     return (
-        <ThemedView style={styles.container}>
-            <ThemedText type="title">My Startups</ThemedText>
-        </ThemedView>
+        <ComingSoon
+            iconName="Rocket"
+            title="My Startups"
+            tagline="Track your business growth"
+            description="Monitor the growth and milestones of your launched startups in one place."
+        />
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-});

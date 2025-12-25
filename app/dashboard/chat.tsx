@@ -1,20 +1,12 @@
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { StyleSheet } from 'react-native';
+import ComingSoon from '@/components/ComingSoon';
 
-export default function ChatScreen() {
+export default function ChatPage() {
     return (
-        <ThemedView style={styles.container}>
-            <ThemedText type="title">AI Assistant</ThemedText>
-        </ThemedView>
+        <ComingSoon
+            iconName="MessageCircle"
+            title="AI Assistant"
+            tagline="Get help from our AI advisor"
+            description="Chat with our advanced AI to refine your business model, ask market questions, and get instant feedback."
+        />
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-});

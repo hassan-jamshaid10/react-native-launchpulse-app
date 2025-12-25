@@ -1,20 +1,12 @@
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { StyleSheet } from 'react-native';
+import ComingSoon from '@/components/ComingSoon';
 
-export default function SettingsScreen() {
+export default function SettingsPage() {
     return (
-        <ThemedView style={styles.container}>
-            <ThemedText type="title">Settings</ThemedText>
-        </ThemedView>
+        <ComingSoon
+            iconName="Settings"
+            title="Settings"
+            tagline="Configure your preferences"
+            description="Manage your account settings, notification preferences, and subscription details."
+        />
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-});

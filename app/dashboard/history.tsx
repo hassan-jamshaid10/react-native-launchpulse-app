@@ -1,20 +1,12 @@
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { StyleSheet } from 'react-native';
+import ComingSoon from '@/components/ComingSoon';
 
-export default function HistoryScreen() {
+export default function HistoryPage() {
     return (
-        <ThemedView style={styles.container}>
-            <ThemedText type="title">History</ThemedText>
-        </ThemedView>
+        <ComingSoon
+            iconName="Clock"
+            title="Evaluation History"
+            tagline="Track your past analyses"
+            description="View a timeline of all your past startup evaluations and track how your ideas have evolved."
+        />
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-});

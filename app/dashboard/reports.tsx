@@ -1,20 +1,12 @@
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { StyleSheet } from 'react-native';
+import ComingSoon from '@/components/ComingSoon';
 
-export default function ReportsScreen() {
+export default function ReportsPage() {
     return (
-        <ThemedView style={styles.container}>
-            <ThemedText type="title">Reports</ThemedText>
-        </ThemedView>
+        <ComingSoon
+            iconName="FileText"
+            title="Reports Center"
+            tagline="Access all evaluation reports"
+            description="Download detailed PDF reports of your evaluations to share with investors or partners."
+        />
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-});
