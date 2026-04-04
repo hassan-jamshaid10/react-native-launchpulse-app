@@ -1,5 +1,9 @@
+import { trpc } from '@/utils/api';
+import * as Google from 'expo-auth-session/providers/google';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
+import * as WebBrowser from 'expo-web-browser';
 import {
     ArrowRight,
     Chrome,
@@ -9,10 +13,9 @@ import {
     Mail,
     Sparkles
 } from 'lucide-react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     Alert,
-    Dimensions,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -20,13 +23,15 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
+    useWindowDimensions,
     View
 } from 'react-native';
 
-const { width } = Dimensions.get('window');
+WebBrowser.maybeCompleteAuthSession();
 
 export default function AuthPage() {
     const router = useRouter();
+    const { height } = useWindowDimensions();
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -34,35 +39,109 @@ export default function AuthPage() {
     const [isLogin, setIsLogin] = useState(true);
     const [loading, setLoading] = useState(false);
 
-    const handleGoogleSignIn = async () => {
+    // tRPC Mutations
+    const mobileGoogleLoginMutation = (trpc as any).auth.mobileGoogleLogin.useMutation();
+    const loginMutation = (trpc as any).auth.login.useMutation();
+    const registerMutation = (trpc as any).auth.register.useMutation();
+
+    // Google Auth Request
+    const [request, response, promptAsync] = Google.useAuthRequest({
+        iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+        androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    });
+
+    useEffect(() => {
+        if (response?.type === 'success') {
+            const { authentication } = response;
+            if (authentication?.idToken) {
+                handleBackendSync(authentication.idToken);
+            }
+        }
+    }, [response]);
+
+    const handleBackendSync = async (idToken: string) => {
         setLoading(true);
-        // Simulate API call
-        setTimeout(() => {
+        try {
+            const responseData = await mobileGoogleLoginMutation.mutateAsync({ idToken });
+
+            // Log for debug
+            console.log("LOGIN RESPONSE: ", JSON.stringify(responseData));
+
+            // Depending on TRPC/superjson version, it might be nested
+            const data = responseData?.json || responseData?.result?.data?.json || responseData;
+
+            if (data?.token) {
+                await SecureStore.setItemAsync('user-token', data.token);
+                if (data.user) {
+                    await SecureStore.setItemAsync('user-info', JSON.stringify(data.user));
+                }
+                router.replace('/dashboard');
+            } else {
+                console.error("Token missing in response", data);
+                Alert.alert("Debug Info", "Token not found! Response: " + JSON.stringify(data).substring(0, 100));
+            }
+        } catch (error: any) {
+            console.error('Login Failed', error);
+            Alert.alert('Login Failed', error.message || 'Could not verify with server.');
+        } finally {
             setLoading(false);
-            Alert.alert('Info', 'Google Sign-In is mocked for this demo.');
-        }, 1500);
+        }
+    };
+
+    const handleGoogleSignIn = () => {
+        promptAsync();
     };
 
     const handleSubmit = async () => {
+        if (!email || !password) {
+            Alert.alert('Error', 'Please enter both email and password.');
+            return;
+        }
+        if (!isLogin && !name) {
+            Alert.alert('Error', 'Please enter your name.');
+            return;
+        }
+
         setLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-            setLoading(false);
+        try {
             if (isLogin) {
-                // Login success
-                router.replace('/dashboard');
+                // Call TRPC Login
+                const responseData = await loginMutation.mutateAsync({ email, password });
+                const data = responseData?.json || responseData?.result?.data?.json || responseData;
+
+                // Usually your Next.js auth returns the user, but we need the JWT token for mobile!
+                if (data?.token) {
+                    await SecureStore.setItemAsync('user-token', data.token);
+                    await SecureStore.setItemAsync('user-info', JSON.stringify(data.user || data));
+                    router.replace('/dashboard');
+                } else if (data?.id || data?.email) {
+                    Alert.alert('Backend Update Required', 'Login verified, but the server did not return a JWT token for mobile sessions! Please update your NextJS login trpc endpoint to return a JWT.');
+                } else {
+                    Alert.alert('Silent Fail Debug', `Payload returned: ${JSON.stringify(responseData).substring(0, 200)}`);
+                }
             } else {
-                // Registration success -> Login
-                Alert.alert('Success', 'Account created! Signing you in...', [
-                    { text: 'OK', onPress: () => router.replace('/dashboard') }
-                ]);
+                // Call TRPC Register
+                const responseData = await registerMutation.mutateAsync({ email, password, name });
+                const data = responseData?.json || responseData?.result?.data?.json || responseData;
+
+                if (data?.id || data?.email) {
+                    Alert.alert('Success', 'Account created! You can now sign in.');
+                    setIsLogin(true); // Switch user to the login tab
+                } else {
+                    Alert.alert('Silent Fail Debug', `Payload returned: ${JSON.stringify(responseData).substring(0, 200)}`);
+                }
             }
-        }, 1500);
+        } catch (error: any) {
+            console.error('Auth Failed', error);
+            Alert.alert('Error', error.message || (isLogin ? 'Login Failed' : 'Registration Failed'));
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <LinearGradient
-            colors={['#f9fafb', '#eff6ff', '#faf5ff']} // gray-50, blue-50, purple-50
+            colors={['#111827', '#172554', '#2e1065']} // from-gray-900 via-blue-950 to-violet-950
             style={{ flex: 1 }}
         >
             <KeyboardAvoidingView
@@ -70,24 +149,18 @@ export default function AuthPage() {
                 style={{ flex: 1 }}
             >
                 <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-                    <View style={styles.container}>
+                    <View style={[styles.container, { minHeight: height }]}>
                         {/* Decoration Circles */}
                         <LinearGradient
-                            colors={['rgba(96, 165, 250, 0.3)', 'rgba(192, 132, 252, 0.3)']}
+                            colors={['rgba(59, 130, 246, 0.2)', 'rgba(59, 130, 246, 0.0)']}
                             style={[styles.floatingCircle, { top: 40, left: -40 }]}
                         />
                         <LinearGradient
-                            colors={['rgba(192, 132, 252, 0.3)', 'rgba(244, 114, 182, 0.3)']}
-                            style={[styles.floatingCircle, { bottom: 40, right: -40 }]}
+                            colors={['rgba(139, 92, 246, 0.2)', 'rgba(139, 92, 246, 0.0)']}
+                            style={[styles.floatingCircle, { bottom: 40, right: -40, width: 250, height: 250 }]}
                         />
 
                         <View style={styles.contentContainer}>
-                            {/* Header */}
-                            <View style={styles.header}>
-                                <Sparkles color="#2563eb" size={32} />
-                                <Text style={styles.brandName}>LaunchPulse</Text>
-                            </View>
-
                             <Text style={styles.heading}>
                                 Validate Your Ideas{'\n'}
                                 <Text style={styles.headingGradient}>With AI Power</Text>
@@ -95,6 +168,17 @@ export default function AuthPage() {
 
                             {/* Form Container */}
                             <View style={styles.card}>
+                                {/* Mobile Logo */}
+                                <View style={styles.mobileLogoContainer}>
+                                    <LinearGradient
+                                        colors={['#111827', '#172554', '#2e1065']}
+                                        style={styles.logoIconBg}
+                                    >
+                                        <Sparkles color="#fff" size={16} />
+                                    </LinearGradient>
+                                    <Text style={styles.brandName}>LaunchPulse</Text>
+                                </View>
+
                                 <View style={styles.cardHeader}>
                                     <Text style={styles.cardTitle}>
                                         {isLogin ? 'Welcome Back' : 'Get Started'}
@@ -106,10 +190,10 @@ export default function AuthPage() {
 
                                 <TouchableOpacity
                                     style={styles.googleButton}
-                                    onPress={handleGoogleSignIn}
-                                    disabled={loading}
+                                    onPress={() => handleGoogleSignIn()}
+                                    disabled={loading || !request}
                                 >
-                                    <Chrome color="#4b5563" size={20} />
+                                    <Chrome color="#374151" size={20} />
                                     <Text style={styles.googleButtonText}>Continue with Google</Text>
                                 </TouchableOpacity>
 
@@ -137,9 +221,9 @@ export default function AuthPage() {
                                 <View style={styles.inputGroup}>
                                     <Text style={styles.label}>Email Address</Text>
                                     <View style={styles.inputWrapper}>
-                                        <Mail size={20} color="#9ca3af" style={styles.inputIcon} />
+                                        <Mail size={18} color="#9ca3af" style={styles.inputIcon} />
                                         <TextInput
-                                            style={[styles.input, { paddingLeft: 40 }]}
+                                            style={[styles.input, { paddingLeft: 42 }]}
                                             placeholder="you@example.com"
                                             value={email}
                                             onChangeText={setEmail}
@@ -154,9 +238,9 @@ export default function AuthPage() {
                                 <View style={styles.inputGroup}>
                                     <Text style={styles.label}>Password</Text>
                                     <View style={styles.inputWrapper}>
-                                        <Lock size={20} color="#9ca3af" style={styles.inputIcon} />
+                                        <Lock size={18} color="#9ca3af" style={styles.inputIcon} />
                                         <TextInput
-                                            style={[styles.input, { paddingLeft: 40, paddingRight: 40 }]}
+                                            style={[styles.input, { paddingLeft: 42, paddingRight: 42 }]}
                                             placeholder="••••••••"
                                             value={password}
                                             onChangeText={setPassword}
@@ -168,9 +252,9 @@ export default function AuthPage() {
                                             style={styles.eyeIcon}
                                         >
                                             {showPassword ? (
-                                                <EyeOff size={20} color="#9ca3af" />
+                                                <EyeOff size={18} color="#9ca3af" />
                                             ) : (
-                                                <Eye size={20} color="#9ca3af" />
+                                                <Eye size={18} color="#9ca3af" />
                                             )}
                                         </TouchableOpacity>
                                     </View>
@@ -189,14 +273,21 @@ export default function AuthPage() {
                                 )}
 
                                 <TouchableOpacity
-                                    style={styles.submitButton}
                                     onPress={handleSubmit}
                                     disabled={loading}
+                                    style={{ marginTop: 8 }}
                                 >
-                                    <Text style={styles.submitButtonText}>
-                                        {loading ? 'Loading...' : isLogin ? 'Sign In' : 'Create Account'}
-                                    </Text>
-                                    {!loading && <ArrowRight color="#fff" size={20} />}
+                                    <LinearGradient
+                                        colors={['#111827', '#172554', '#2e1065']}
+                                        style={styles.submitButton}
+                                        start={{ x: 0, y: 0 }}
+                                        end={{ x: 1, y: 1 }}
+                                    >
+                                        <Text style={styles.submitButtonText}>
+                                            {loading ? 'Loading...' : isLogin ? 'Sign In' : 'Create Account'}
+                                        </Text>
+                                        {!loading && <ArrowRight color="#fff" size={18} />}
+                                    </LinearGradient>
                                 </TouchableOpacity>
 
                                 <View style={styles.switchRow}>
@@ -224,94 +315,102 @@ export default function AuthPage() {
 
 const styles = StyleSheet.create({
     container: {
-        minHeight: Dimensions.get('window').height,
         padding: 20,
         justifyContent: 'center',
-        marginBottom: 40, // some padding for safety
+        marginBottom: 40,
     },
     floatingCircle: {
         position: 'absolute',
-        width: 200,
-        height: 200,
-        borderRadius: 100,
-        opacity: 0.6,
+        width: 192,
+        height: 192,
+        borderRadius: 999,
+        opacity: 0.8,
     },
     contentContainer: {
         width: '100%',
-        maxWidth: 450,
+        maxWidth: 420,
         alignSelf: 'center',
+        zIndex: 10,
     },
-    header: {
+    heading: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginBottom: 28,
+        color: '#ffffff',
+        lineHeight: 40,
+    },
+    headingGradient: {
+        color: '#60a5fa', // blue-400 equivalent for plain text
+    },
+    card: {
+        backgroundColor: '#ffffff',
+        borderRadius: 24,
+        padding: 28,
+        borderWidth: 1,
+        borderColor: '#f3f4f6',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.1,
+        shadowRadius: 20,
+        elevation: 8,
+    },
+    mobileLogoContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 24,
+        marginBottom: 20,
         gap: 8,
     },
+    logoIconBg: {
+        width: 32,
+        height: 32,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     brandName: {
-        fontSize: 24,
+        fontSize: 20,
         fontWeight: 'bold',
         color: '#111827',
-    },
-    heading: {
-        fontSize: 30,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginBottom: 32,
-        color: '#111827',
-        lineHeight: 38,
-    },
-    headingGradient: {
-        color: '#2563eb', // Fallback
-        // In React Native, text gradient requires MaskedView, simplifying to solid color for stability
-    },
-    card: {
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        borderRadius: 24,
-        padding: 24,
-        borderWidth: 1,
-        borderColor: '#e5e7eb',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
+        letterSpacing: -0.5,
     },
     cardHeader: {
-        marginBottom: 24,
+        marginBottom: 20,
         alignItems: 'center',
     },
     cardTitle: {
-        fontSize: 24,
+        fontSize: 22,
         fontWeight: 'bold',
         color: '#111827',
-        marginBottom: 8,
+        marginBottom: 4,
     },
     cardSubtitle: {
         color: '#4b5563',
-        fontSize: 16,
+        fontSize: 14,
     },
     googleButton: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 12,
+        paddingVertical: 10,
+        paddingHorizontal: 20,
         backgroundColor: '#fff',
-        borderWidth: 1,
+        borderWidth: 2,
         borderColor: '#e5e7eb',
         borderRadius: 999,
-        marginBottom: 24,
+        marginBottom: 20,
         gap: 8,
     },
     googleButtonText: {
         color: '#374151',
         fontWeight: '500',
-        fontSize: 16,
+        fontSize: 14,
     },
     divider: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 24,
+        marginBottom: 20,
     },
     dividerLine: {
         flex: 1,
@@ -319,18 +418,18 @@ const styles = StyleSheet.create({
         backgroundColor: '#e5e7eb',
     },
     dividerText: {
-        marginHorizontal: 16,
+        marginHorizontal: 12,
         color: '#6b7280',
-        fontSize: 14,
+        fontSize: 13,
     },
     inputGroup: {
         marginBottom: 16,
     },
     label: {
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: '500',
         color: '#374151',
-        marginBottom: 8,
+        marginBottom: 6,
     },
     inputWrapper: {
         position: 'relative',
@@ -341,9 +440,9 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#e5e7eb',
         borderRadius: 999,
-        paddingVertical: 12,
+        paddingVertical: 10,
         paddingHorizontal: 16,
-        fontSize: 16,
+        fontSize: 14,
         color: '#111827',
     },
     inputIcon: {
@@ -361,67 +460,61 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         marginTop: 4,
-        marginBottom: 24,
+        marginBottom: 20,
     },
     checkboxContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
+        gap: 6,
     },
     checkbox: {
-        width: 16,
-        height: 16,
+        width: 14,
+        height: 14,
         borderWidth: 1,
         borderColor: '#d1d5db',
-        borderRadius: 4,
+        borderRadius: 3,
     },
     rememberText: {
         color: '#374151',
-        fontSize: 14,
+        fontSize: 13,
     },
     forgotText: {
         color: '#2563eb',
         fontWeight: '500',
-        fontSize: 14,
+        fontSize: 13,
     },
     submitButton: {
-        backgroundColor: '#111827',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 14,
+        paddingVertical: 11,
         borderRadius: 999,
         gap: 8,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 2,
     },
     submitButtonText: {
-        color: '#fff',
+        color: '#ffffff',
         fontWeight: '600',
-        fontSize: 16,
+        fontSize: 14,
     },
     switchRow: {
         flexDirection: 'row',
         justifyContent: 'center',
-        marginTop: 20,
+        marginTop: 16,
     },
     switchText: {
         color: '#4b5563',
-        fontSize: 15,
+        fontSize: 13,
     },
     switchAction: {
         color: '#2563eb',
         fontWeight: '600',
-        fontSize: 15,
+        fontSize: 13,
     },
     termsText: {
         textAlign: 'center',
         color: '#6b7280',
-        fontSize: 12,
-        marginTop: 20,
-        lineHeight: 18,
+        fontSize: 10,
+        marginTop: 16,
+        lineHeight: 16,
     },
 });
