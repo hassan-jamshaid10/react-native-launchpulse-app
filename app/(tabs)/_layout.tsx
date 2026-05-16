@@ -71,6 +71,7 @@ export default function TabLayout() {
                 name="auth"
                 options={{
                     title: 'Sign In',
+                    headerShown: false,
                     tabBarIcon: ({ color }) => <UserCircle color="#2563eb" size={32} />,
                 }}
             />
