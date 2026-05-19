@@ -1,10 +1,8 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-
 export interface NavigationItem {
     id: string;
     name: string;
     route: string;
-    icon: keyof typeof MaterialCommunityIcons.glyphMap;
+    icon: string;
     permission?: string;
 }
 
@@ -17,47 +15,50 @@ export const MAIN_NAVIGATION: NavigationItem[] = [
         permission: 'dashboard:view',
     },
     {
-        id: 'new-evaluation',
-        name: 'New Evaluation',
-        route: '/dashboard/new-evaluation',
-        icon: 'lightbulb-outline',
-        permission: 'idea:submit',
+        id: 'evaluations',
+        name: 'Evaluations',
+        route: '/dashboard/evaluations',
+        icon: 'chart-line-variant',
+        permission: 'evaluation:view',
     },
     {
         id: 'startups',
         name: 'My Startups',
         route: '/dashboard/startups',
-        icon: 'rocket-launch-outline',
+        icon: 'office-building-outline',
         permission: 'startup:view',
-    },
-    {
-        id: 'history',
-        name: 'History',
-        route: '/dashboard/history',
-        icon: 'history',
-        permission: 'history:view',
-    },
-    {
-        id: 'chat',
-        name: 'AI Assistant',
-        route: '/dashboard/chat',
-        icon: 'chat-processing-outline',
-        permission: 'chat:access',
-    },
-    {
-        id: 'portfolio',
-        name: 'Portfolio',
-        route: '/dashboard/portfolio',
-        icon: 'briefcase-outline',
-        permission: 'portfolio:view',
     },
     {
         id: 'analytics',
         name: 'Analytics',
         route: '/dashboard/analytics',
-        icon: 'chart-bar',
+        icon: 'google-analytics',
         permission: 'analytics:view',
     },
+    {
+        id: 'competitors',
+        name: 'Competitors',
+        route: '/dashboard/startup-comparisons',
+        icon: 'compare-horizontal',
+        permission: 'competitors:view',
+    },
+    {
+        id: 'roadmap',
+        name: 'Roadmap',
+        route: '/dashboard/roadmap',
+        icon: 'map-outline',
+        permission: 'roadmap:view',
+    },
+    {
+        id: 'chat',
+        name: 'AI Assistant',
+        route: '/dashboard/chat',
+        icon: 'robot-outline',
+        permission: 'chat:access',
+    },
+];
+
+export const SETTINGS_NAVIGATION: NavigationItem[] = [
     {
         id: 'reports',
         name: 'Reports',
@@ -65,15 +66,19 @@ export const MAIN_NAVIGATION: NavigationItem[] = [
         icon: 'file-document-outline',
         permission: 'report:view',
     },
-];
-
-export const SETTINGS_NAVIGATION: NavigationItem[] = [
     {
         id: 'team',
-        name: 'Team',
+        name: 'Teams',
         route: '/dashboard/team',
         icon: 'account-group-outline',
         permission: 'team:view',
+    },
+    {
+        id: 'documentation',
+        name: 'Documentation',
+        route: '/dashboard/getting-started',
+        icon: 'text-box-outline',
+        permission: 'documentation:view',
     },
     {
         id: 'settings',
