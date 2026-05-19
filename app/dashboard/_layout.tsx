@@ -16,76 +16,19 @@ export default function DashboardLayout() {
                     },
                 }}
             >
-                <Drawer.Screen
-                    name="index"
-                    options={{
-                        title: 'Dashboard',
-                        headerTitle: 'Dashboard',
-                    }}
-                />
-                <Drawer.Screen
-                    name="new-evaluation"
-                    options={{
-                        title: 'New Evaluation',
-                        headerTitle: 'New Evaluation',
-                    }}
-                />
-                <Drawer.Screen
-                    name="startups"
-                    options={{
-                        title: 'My Startups',
-                        headerTitle: 'My Startups',
-                    }}
-                />
-                <Drawer.Screen
-                    name="history"
-                    options={{
-                        title: 'History',
-                        headerTitle: 'History',
-                    }}
-                />
-                <Drawer.Screen
-                    name="chat"
-                    options={{
-                        title: 'AI Assistant',
-                        headerTitle: 'AI Assistant',
-                    }}
-                />
-                <Drawer.Screen
-                    name="portfolio"
-                    options={{
-                        title: 'Portfolio',
-                        headerTitle: 'Portfolio',
-                    }}
-                />
-                <Drawer.Screen
-                    name="analytics"
-                    options={{
-                        title: 'Analytics',
-                        headerTitle: 'Analytics',
-                    }}
-                />
-                <Drawer.Screen
-                    name="reports"
-                    options={{
-                        title: 'Reports',
-                        headerTitle: 'Reports',
-                    }}
-                />
-                <Drawer.Screen
-                    name="team"
-                    options={{
-                        title: 'Team',
-                        headerTitle: 'Team',
-                    }}
-                />
-                <Drawer.Screen
-                    name="settings"
-                    options={{
-                        title: 'Settings',
-                        headerTitle: 'Settings',
-                    }}
-                />
+                <Drawer.Screen name="index" options={{ title: 'Dashboard' }} />
+                <Drawer.Screen name="evaluations" options={{ title: 'Evaluations' }} />
+                <Drawer.Screen name="startups" options={{ title: 'My Startups' }} />
+                <Drawer.Screen name="analytics" options={{ title: 'Analytics' }} />
+                <Drawer.Screen name="competitors" options={{ title: 'Competitors' }} />
+                <Drawer.Screen name="competitors_deepdive" options={{ title: 'Deep Dive Analysis', drawerItemStyle: { display: 'none' } }} />
+                <Drawer.Screen name="roadmap" options={{ title: 'Roadmap' }} />
+                <Drawer.Screen name="chat" options={{ title: 'AI Assistant' }} />
+                
+                <Drawer.Screen name="reports" options={{ title: 'Reports' }} />
+                <Drawer.Screen name="team" options={{ title: 'Team' }} />
+                <Drawer.Screen name="documentation" options={{ title: 'Documentation' }} />
+                <Drawer.Screen name="settings" options={{ title: 'Settings' }} />
             </Drawer>
         </GestureHandlerRootView>
     );
