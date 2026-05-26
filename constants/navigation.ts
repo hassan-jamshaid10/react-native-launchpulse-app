@@ -1,8 +1,10 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+
 export interface NavigationItem {
     id: string;
     name: string;
     route: string;
-    icon: string;
+    icon: keyof typeof MaterialCommunityIcons.glyphMap;
     permission?: string;
 }
 
@@ -15,50 +17,47 @@ export const MAIN_NAVIGATION: NavigationItem[] = [
         permission: 'dashboard:view',
     },
     {
-        id: 'evaluations',
-        name: 'Evaluations',
-        route: '/dashboard/evaluations',
-        icon: 'chart-line-variant',
-        permission: 'evaluation:view',
+        id: 'new-evaluation',
+        name: 'New Evaluation',
+        route: '/dashboard/new-evaluation',
+        icon: 'lightbulb-outline',
+        permission: 'idea:submit',
     },
     {
         id: 'startups',
         name: 'My Startups',
         route: '/dashboard/startups',
-        icon: 'office-building-outline',
+        icon: 'rocket-launch-outline',
         permission: 'startup:view',
     },
     {
-        id: 'analytics',
-        name: 'Analytics',
-        route: '/dashboard/analytics',
-        icon: 'google-analytics',
-        permission: 'analytics:view',
-    },
-    {
-        id: 'competitors',
-        name: 'Competitors',
-        route: '/dashboard/startup-comparisons',
-        icon: 'compare-horizontal',
-        permission: 'competitors:view',
-    },
-    {
-        id: 'roadmap',
-        name: 'Roadmap',
-        route: '/dashboard/roadmap',
-        icon: 'map-outline',
-        permission: 'roadmap:view',
+        id: 'history',
+        name: 'History',
+        route: '/dashboard/history',
+        icon: 'history',
+        permission: 'history:view',
     },
     {
         id: 'chat',
         name: 'AI Assistant',
         route: '/dashboard/chat',
-        icon: 'robot-outline',
+        icon: 'chat-processing-outline',
         permission: 'chat:access',
     },
-];
-
-export const SETTINGS_NAVIGATION: NavigationItem[] = [
+    {
+        id: 'portfolio',
+        name: 'Portfolio',
+        route: '/dashboard/portfolio',
+        icon: 'briefcase-outline',
+        permission: 'portfolio:view',
+    },
+    {
+        id: 'analytics',
+        name: 'Analytics',
+        route: '/dashboard/analytics',
+        icon: 'chart-bar',
+        permission: 'analytics:view',
+    },
     {
         id: 'reports',
         name: 'Reports',
@@ -66,19 +65,15 @@ export const SETTINGS_NAVIGATION: NavigationItem[] = [
         icon: 'file-document-outline',
         permission: 'report:view',
     },
+];
+
+export const SETTINGS_NAVIGATION: NavigationItem[] = [
     {
         id: 'team',
-        name: 'Teams',
+        name: 'Team',
         route: '/dashboard/team',
         icon: 'account-group-outline',
         permission: 'team:view',
-    },
-    {
-        id: 'documentation',
-        name: 'Documentation',
-        route: '/dashboard/getting-started',
-        icon: 'text-box-outline',
-        permission: 'documentation:view',
     },
     {
         id: 'settings',
